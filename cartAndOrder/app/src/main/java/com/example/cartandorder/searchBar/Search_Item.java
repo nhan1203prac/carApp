@@ -1,0 +1,201 @@
+package com.example.cartandorder.searchBar;
+
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.cartandorder.R;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Search_Item extends AppCompatActivity {
+    private RecyclerView recyclerView;
+    private OfferAdapter carSaleAdapter;
+    private List<Car> carList;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.search_item);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setHasFixedSize(true);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 2);
+        recyclerView.setLayoutManager(gridLayoutManager);
+
+        carList = new ArrayList<>();
+        carList.add(new Car("Mercedes Benz EQE", "Gray", "$171,250","Some desc","Mercedes"));
+        carList.add(new Car("Mercedes Benz EQE", "Gray", "$171,250","Some desc","Mercedes"));
+        carList.add(new Car("Mercedes Benz EQE", "Gray", "$171,250","Some desc","Mercedes"));
+        carList.add(new Car("Mercedes Benz EQE", "Gray", "$171,250","Some desc","Mercedes"));
+        carList.add(new Car("Mercedes Benz EQE", "Gray", "$171,250","Some desc","Mercedes"));
+        carList.add(new Car("Mercedes Benz EQE", "Gray", "$171,250","Some desc","Mercedes"));
+
+
+        carSaleAdapter = new OfferAdapter(carList,this);
+
+        recyclerView.setAdapter(carSaleAdapter);
+
+
+        ImageView imgViewBack = findViewById(R.id.imgBack);
+        imgViewBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(Search_Item.this, SearchBar.class));
+            }
+        });
+
+        EditText sBar = findViewById(R.id.search_bar);
+//        filter
+        sBar.setOnTouchListener(new View.OnTouchListener() {
+            Drawable[] drawables = sBar.getCompoundDrawablesRelative();
+            Drawable drawable = drawables[2];
+            @SuppressLint("ClickableViewAccessibility")
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (motionEvent.getRawX() >= (sBar.getRight() - drawable.getBounds().width() - sBar.getPaddingEnd())) {
+                    sBar.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            BottomDialog();
+                            sBar.setOnClickListener(null);
+                        }
+                    });
+                }
+                return false;
+            }
+        });
+//        fill
+        sBar.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                if (i == EditorInfo.IME_ACTION_DONE || (keyEvent != null && keyEvent.getAction() == KeyEvent.ACTION_DOWN && keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+                    String searchText = sBar.getText().toString();
+                    if (searchText.equals("Mercedes-Benz")) {
+                        startActivity(new Intent(Search_Item.this, Search_Item.class));
+                    } else {
+                        startActivity(new Intent(Search_Item.this, Search_Empty.class));
+                    }
+                    return true;
+                }
+                return false;
+            }
+        });
+    }
+
+    private void BottomDialog() {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        bottomSheetDialog.setContentView(R.layout.search_filter);
+        bottomSheetDialog.setCancelable(true);
+        bottomSheetDialog.setCanceledOnTouchOutside(true);
+
+        LinearLayout linearCondition = bottomSheetDialog.findViewById(R.id.linearcondition);
+        for (int i = 0; i < linearCondition.getChildCount(); i++) {
+            Button btn = (Button)linearCondition.getChildAt(i);
+            btn.setOnClickListener(new View.OnClickListener() {
+                @SuppressLint("ResourceType")
+                @Override
+                public void onClick(View view) {
+                    chooseButton(btn, linearCondition);
+                }
+            });
+        }
+
+        LinearLayout linearSort = bottomSheetDialog.findViewById(R.id.linearsort);
+        for (int i = 0; i < linearSort.getChildCount(); i++) {
+            Button btn = (Button)linearSort.getChildAt(i);
+            btn.setOnClickListener(new View.OnClickListener() {
+                @SuppressLint("ResourceType")
+                @Override
+                public void onClick(View view) {
+                    chooseButton(btn, linearSort);
+                }
+            });
+        }
+
+        LinearLayout linearRating = bottomSheetDialog.findViewById(R.id.linearrating);
+        for (int i = 0; i < linearRating.getChildCount(); i++) {
+            Button btn = (Button)linearRating.getChildAt(i);
+            btn.setOnClickListener(new View.OnClickListener() {
+                @SuppressLint("ResourceType")
+                @Override
+                public void onClick(View view) {
+                    for (int j = 0; j < linearRating.getChildCount(); j++) {
+                        ((Button)linearRating.getChildAt(j)).setBackgroundResource(R.drawable.n_btn_search_filter);
+                        ((Button)linearRating.getChildAt(j)).setTextColor(getResources().getColor(R.color.black));
+                    }
+                    btn.setBackgroundResource(R.drawable.n_btn_search_filter_choose);
+                    btn.setTextColor(getResources().getColor(R.color.white));
+                }
+            });
+        }
+
+        Button btnReset = bottomSheetDialog.findViewById(R.id.reset);
+        btnReset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EditText num1 = bottomSheetDialog.findViewById(R.id.editTextNumber);
+                EditText num2 = bottomSheetDialog.findViewById(R.id.editTextNumber2);
+                num1.setText("");
+                num2.setText("");
+                for (int j = 0; j < linearSort.getChildCount(); j++) {
+                    ((Button)linearSort.getChildAt(j)).setBackgroundResource(R.drawable.n_btn_search_filter);
+                    ((Button)linearSort.getChildAt(j)).setTextColor(getResources().getColor(R.color.black));
+                }
+                for (int j = 0; j < linearCondition.getChildCount(); j++) {
+                    ((Button)linearCondition.getChildAt(j)).setBackgroundResource(R.drawable.n_btn_search_filter);
+                    ((Button)linearCondition.getChildAt(j)).setTextColor(getResources().getColor(R.color.black));
+                }
+                for (int j = 0; j < linearRating.getChildCount(); j++) {
+                    ((Button)linearRating.getChildAt(j)).setBackgroundResource(R.drawable.n_btn_search_filter);
+                    ((Button)linearRating.getChildAt(j)).setTextColor(getResources().getColor(R.color.black));
+                }
+            }
+        });
+
+        Button btnApply = bottomSheetDialog.findViewById(R.id.apply);
+        btnApply.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(getApplicationContext(),"Apply", Toast.LENGTH_LONG).show();
+                bottomSheetDialog.cancel();
+            }
+        });
+        bottomSheetDialog.show();
+    }
+
+    private void chooseButton(Button btn, LinearLayout linear) {
+        for (int j = 0; j < linear.getChildCount(); j++) {
+            ((Button)linear.getChildAt(j)).setBackgroundResource(R.drawable.n_btn_search_filter);
+            ((Button)linear.getChildAt(j)).setTextColor(getResources().getColor(R.color.black));
+        }
+        btn.setBackgroundResource(R.drawable.n_btn_search_filter_choose);
+        btn.setTextColor(getResources().getColor(R.color.white));
+    }
+}
